@@ -71,13 +71,13 @@ vim.opt.rtp:prepend(lazypath)
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
   -- NOTE: First, some plugins that don't require any configuration
-
   -- Git related plugins
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
-
+  'rose-pine/neovim',
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
+  -- 'epwalsh/obsidian.nvim',
 
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
@@ -97,7 +97,36 @@ require('lazy').setup({
       'folke/neodev.nvim',
     },
   },
+  
+  -- Latex Config 
+  {
+    'lervag/vimtex',
+    config = function()
+      vim.g.vimtex_view_method = 'zathura' -- Replace 'zathura' with your preferred PDF viewer
+      vim.g.vimtex_compiler_method = 'latexmk' -- Use 'latexmk' for compilation
+    end,
+  },
+  
+  {
+    'epwalsh/obsidian.nvim',
+    config = function()
+      require("obsidian").setup({
+        workspaces = {
+          {
+            name = "personal",
+            path = "~/Documents/Obsidian",
+          },
+        },
+        completion = {
+          nvim_cmp = true, -- Enable completion with nvim-cmp
+          min_chars = 2,
+        },
+      })
+      end,
+      dependencies = { "nvim-lua/plenary.nvim" },
+  },
 
+  
   {
     -- Autocompletion
     'hrsh7th/nvim-cmp',
@@ -113,7 +142,7 @@ require('lazy').setup({
       'rafamadriz/friendly-snippets',
     },
   },
-
+  
   -- Useful plugin to show you pending keybinds.
   { 'folke/which-key.nvim', opts = {} },
   {
@@ -153,6 +182,34 @@ require('lazy').setup({
   -- "gc" to comment visual regions/lines
   { 'numToStr/Comment.nvim', opts = {} },
 
+  -- Nvim-Tree (for the folder system)
+  {
+    'nvim-tree/nvim-tree.lua',
+    dependencies = { 'nvim-tree/nvim-web-devicons' }, -- Optional, for icons
+    config = function()
+      require('nvim-tree').setup {
+        disable_netrw = true,
+        hijack_netrw = true,
+        view = {
+          width = 30, 
+          side = 'left',
+        },
+        renderer = {
+          icons = {
+            show = {
+              file = true,
+              folder = true,
+              folder_arrow = true,
+            },
+          },
+        },
+        filters = {
+          dotfiles = false,
+        },
+      }
+    end,
+  },
+
   -- Fuzzy Finder (files, lsp, etc)
   {
     'nvim-telescope/telescope.nvim',
@@ -173,35 +230,7 @@ require('lazy').setup({
       },
     },
   },
-  
-  -- Folder structure on the left side (Nvim-tree)
-  {
-    'nvim-tree/nvim-tree.lua',
-    dependencies = { 'nvim-tree/nvim-web-devicons' },
-    config = function()
-      require('nvim-tree').setup {
-        disable_netrw = true,
-        hijack_netrw = true,
-        view = {
-          width = 30,
-          side = 'left',
-        },
-        renderer = {
-          icons = {
-            show = {
-              file = true,
-              folder = true,
-              folder_arrow = true,
-            },
-          },
-        },
-        filters = {
-          dotfiles = true,
-        },
-      }
-    end,
-  },
-  
+
   {
     -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
@@ -299,11 +328,26 @@ vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { de
 vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
 
+-- [[ Configure VimTex]] 
+-- Set the leader key for vimtex-specific commands
+vim.g.vimtex_leader = '<leader>l'
+vim.g.vimtex_view_method = 'zathura' -- Set the viewer
+vim.g.vimtex_compiler_latexmk = {
+  build_dir = 'build', -- Optional: Separate build directory
+  options = {
+    '-shell-escape',
+    '-verbose',
+    '-file-line-error',
+    '-synctex=1',
+    '-interaction=nonstopmode',
+  },
+}
+
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
 require('nvim-treesitter.configs').setup {
   -- Add languages to be installed here that you want installed for treesitter
-  ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim' },
+  ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'markdown', 'markdown_inline', 'latex' },
 
   -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
   auto_install = false,
@@ -422,6 +466,21 @@ local servers = {
   -- rust_analyzer = {},
   -- tsserver = {},
   -- html = { filetypes = { 'html', 'twig', 'hbs'} },
+  --
+  pylsp = {
+    plugins = {
+      jedi_completion = { enabled = true },
+      jedi_hover = { enabled = true },
+      jedi_references = { enabled = true },
+      jedi_signature_help = { enabled = true },
+      jedi_symbols = { enabled = true, all_scopes = true },
+      -- pycodestyle = { enabled = true, ignore = { "E501" }, maxLineLength = 100 },
+      pylsp_mypy = { enabled = true, live_mode = false },
+      pylsp_black = { enabled = true },
+      pylsp_isort = { enabled = true },
+      pylsp_flake8 = { enabled = true },
+    },
+  },
 
   lua_ls = {
     Lua = {
@@ -447,6 +506,7 @@ mason_lspconfig.setup {
     'luau_lsp',
     'marksman',
     'powershell_es',
+    'pylsp',
 }
 
 mason_lspconfig.setup_handlers {
@@ -558,20 +618,8 @@ require('telescope').setup{
   }
 }
 
-require 'synthwave84'.setup({
-  glow = {
-    error_msg = true,
-    type2 = true,
-    func = true,
-    keyword = true,
-    operator = false,
-    buffer_current_target = true,
-    buffer_visible_target = true,
-    buffer_inactive_target = true,
-  }
-})
-
-vim.cmd[[colorscheme synthwave84]]
+vim.cmd[[colorscheme rose-pine-moon]]
+vim.opt.conceallevel = 1
 
 
 function delete_file_swaps()
@@ -631,4 +679,7 @@ local opts = { noremap = true, silent = true }
 vim.keymap.set({'n', 'i'}, "<C-+>", function() ResizeGuiFont(1)  end, opts)
 vim.keymap.set({'n', 'i'}, "<C-->", function() ResizeGuiFont(-1) end, opts)
 vim.keymap.set({'n', 'i'}, "<C-BS>", function() ResetGuiFont() end, opts)
-vim.keymap.set('n', '<leader>n', ':NvimTreeToggle<CR>', { noremap = true, silent = true, desc = 'Toggle NvimTree' })
+vim.keymap.set('n', '<leader>e', ':NvimTreeToggle<CR>', { noremap = true, silent = true, desc = 'Toggle NvimTree' })
+vim.keymap.set('n', '<leader>r', ':NvimTreeRefresh<CR>', { noremap = true, silent = true, desc = 'Refresh NvimTree' })
+vim.keymap.set('n', '<leader>n', ':NvimTreeFindFile<CR>', { noremap = true, silent = true, desc = 'Find File in NvimTree' })
+vim.api.nvim_set_keymap('n', '<leader>lv', ':!zathura %:p:h/*.pdf &<CR>', { noremap = true, silent = true })
