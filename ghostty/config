@@ -1,0 +1,11 @@
+font-size = 20.0
+theme = rose-pine-moon
+macos-titlebar-style = hidden
+cursor-style = block 
+shell-integration-features = no-cursor,no-sudo,title
+cursor-color = FF00FF 
+
+keybind = super+shift+l=goto_split:right
+keybind = super+shift+h=goto_split:left
+keybind = super+shift+k=goto_split:top
+keybind = super+shift+j=goto_split:bottom
